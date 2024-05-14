@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Translator</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Custom background */
+        body {
+            background-image: linear-gradient(to bottom, #f0f3f5, #cfd8dc);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 40px;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            resize: none;
+            border-radius: 5px;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            color: #fff;
+        }
+
+        .btn-info:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+
+        .btn-group .btn {
+            margin-right: 10px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Translated languages accordion */
+        .translated-languages {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .accordion-item {
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            background-color: #f0f0f0;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .accordion-header:hover {
+            background-color: #e0e0e0;
+        }
+
+        .accordion-header::after {
+            content: '\25BC';
+            /* Down arrow */
+            float: right;
+        }
+
+        .accordion-header.collapsed::after {
+            content: '\25B6';
+            /* Right arrow */
+        }
+
+        .accordion-body {
+            padding: 10px;
+            display: none;
+        }
+
+        .accordion-body.show {
+            display: block;
+        }
+
+        /* Additional Styles */
+        .form-control-file {
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        #fileInput::-webkit-file-upload-button {
+            cursor: pointer;
+            background-color: #007bff;
+            color: #fff;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            padding: 10px 15px;
+        }
+
+        #fileInput::-webkit-file-upload-button:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .form-control:focus,
+        .form-control:active {
+            border-color: #007bff;
+            box-shadow: none;
+        }
+
+        .copy-download-btns {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .copy-download-btns button {
+            margin-right: 10px;
+            /* Adds space between buttons */
+        }
+
+
+        /* Loading indicator styles */
+        #loadingIndicator {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>JSON Translator</h1>
+        <div class="form-group">
+            <textarea id="inputJson" class="form-control" rows="10" placeholder="Enter JSON here"></textarea>
+        </div>
+        <div class="form-group">
+            <input type="file" id="fileInput" class="form-control-file">
+        </div>
+        <div class="form-group">
+            <input type="text" id="targetLanguages" class="form-control"
+                placeholder="Target Languages (e.g., 'es,fr,de' for Spanish, French, German)">
+        </div>
+        <div class="form-group">
+            <button class="btn btn-primary mr-2" onclick="translateJson()">Translate</button>
+            <button class="btn btn-secondary mr-2" onclick="cancelTranslation()">Cancel</button>
+            <button class="btn btn-success mr-2" onclick="copyAllToClipboard()">Copy All JSON</button>
+            <button class="btn btn-info" onclick="downloadAllJson()">Download All JSON Files</button>
+        </div <h2>Translated JSON</h2>
+        <div id="translatedJsons" class="translated-languages"></div>
+        <div id="loadingIndicator" class="text-center">
+            <button class="btn btn-danger" onclick="cancelTranslation()">Cancel</button>
+        </div>
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let translationRequest = null;
+        const translatedJsons = {};
+
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect, false);
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('inputJson').value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+
+        async function translateJson() {
+            const inputJson = document.getElementById('inputJson').value;
+            const targetLanguages = document.getElementById('targetLanguages').value.split(',').map(lang => lang.trim());
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const translatedJsonsContainer = document.getElementById('translatedJsons');
+            const errorMessage = document.getElementById('errorMessage');
+
+            loadingIndicator.style.display = 'block';
+            translatedJsonsContainer.innerHTML = '';
+            errorMessage.textContent = '';
+
+            try {
+                for (const targetLanguage of targetLanguages) {
+                    const response = await fetch('http://localhost:3000/translate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ json: JSON.parse(inputJson), targetLanguage })
+                    });
+
+                    if (response.ok) {
+                        const translatedJson = await response.json();
+                        const translatedJsonStr = JSON.stringify(translatedJson, null, 2);
+
+                        // Store translated JSON in object
+                        translatedJsons[targetLanguage] = translatedJsonStr;
+
+                        // Display translated JSON with copy and download buttons
+                        const translatedJsonDiv = document.createElement('div');
+                        translatedJsonDiv.className = 'accordion-item';
+                        translatedJsonDiv.innerHTML = `
+                            <div class="copy-download-btns">
+                                <button class="btn btn-primary" onclick="copyToClipboard('${targetLanguage}')">Copy</button>
+                                <button class="btn btn-success" onclick="downloadJson('${targetLanguage}', '${translatedJsonStr}')">Download</button>
+                            </div>
+                            <div class="accordion-header" onclick="toggleAccordion(this)">${targetLanguage}</div>
+                            <div class="accordion-body">
+                                <h3>Translated JSON for ${targetLanguage}</h3>
+                                <pre class="border p-3" data-lang="${targetLanguage}">${translatedJsonStr}</pre>
+                            </div>
+                        `;
+                        translatedJsonsContainer.appendChild(translatedJsonDiv);
+                    } else {
+                        errorMessage.textContent = `Error translating to ${targetLanguage}: ${response.statusText}`;
+                    }
+                }
+            } catch (error) {
+                errorMessage.textContent = `Error: ${error.message}`;
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        function toggleAccordion(header) {
+            const body = header.nextElementSibling;
+            body.classList.toggle('show');
+            header.classList.toggle('collapsed');
+        }
+
+        function copyToClipboard(language) {
+            const translatedJson = document.querySelector(`pre[data-lang="${language}"]`).textContent;
+            navigator.clipboard.writeText(translatedJson).then(() => {
+                alert(`Translated JSON for ${language} copied to clipboard!`);
+            }).catch(err => {
+                alert('Failed to copy JSON: ' + err);
+            });
+        }
+
+        function copyAllToClipboard() {
+            const allTranslatedJsons = Object.values(translatedJsons).join('\n\n');
+            navigator.clipboard.writeText(allTranslatedJsons).then(() => {
+                alert('All translated JSONs copied to clipboard!');
+            }).catch(err => {
+                alert('Failed to copy JSON: ' + err);
+            });
+        }
+
+        function downloadJson(language, jsonStr) {
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${language}.json`;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        function downloadAllJson() {
+            for (const [language, jsonStr] of Object.entries(translatedJsons)) {
+                downloadJson(language, jsonStr);
+            }
+        }
+
+        function cancelTranslation() {
+            if (translationRequest) {
+                translationRequest.abort();
+                translationRequest = null;
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>

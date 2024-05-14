@@ -1,0 +1,14 @@
+{
+  "name": "json-translator",
+  "version": "1.0.0",
+  "main": "server.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "body-parser": "^1.19.0",
+    "translate": "^1.4.0"
+  }
+}
