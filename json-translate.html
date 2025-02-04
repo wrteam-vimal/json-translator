@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Json Language Translator | WRTeam</title>
+    <meta name="description"
+        content="WRTeam's Json Language Translator - Professional tool for translating JSON files across multiple languages. Streamline your localization process with our efficient translation solution.">
+    <meta name="keywords"
+        content="WRTeam, JSON translator, language translation tool, JSON localization, web development, wrteam.in">
+
+    <!-- Open Graph Tags for Social Media -->
+    <meta property="og:title" content="Json Language Translator | WRTeam">
+    <meta property="og:description"
+        content="Professional JSON translation tool by WRTeam. Easily translate your JSON files across multiple languages.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://wrteam.in/json-language-translator">
+    <meta property="og:site_name" content="WRTeam">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Json Language Translator | WRTeam">
+    <meta name="twitter:description"
+        content="Professional JSON translation tool by WRTeam. Easily translate your JSON files across multiple languages.">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://wrteam.in/json-language-translator">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Json Language Translator",
+      "applicationCategory": "DeveloperApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "WRTeam",
+        "url": "https://wrteam.in"
+      },
+      "description": "Professional tool for translating JSON files across multiple languages. Streamline your localization process with our efficient translation solution.",
+      "operatingSystem": "Web-based",
+      "url": "https://wrteam.in/json-language-translator"
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "WRTeam",
+      "url": "https://wrteam.in",
+      "logo": "https://wrteam.in/logo.png",
+      "sameAs": [
+        "https://www.linkedin.com/company/wrteam",
+        "https://twitter.com/wrteam",
+        "https://github.com/wrteam"
+      ]
+    }
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f4f4;
+            padding-top: 50px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        #languageContainer {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .language-row {
+            margin-bottom: 10px;
+        }
+
+        #translationResults {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .translation-card {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Json Language Translator | WRTeam</h1>
+
+        <div class="mb-3">
+            <input type="file" id="jsonFileInput" class="form-control" accept=".json">
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="sourceLang" class="form-label">Source Language</label>
+                <input type="text" id="sourceLang" class="form-control" placeholder="en" value="en">
+            </div>
+            <div class="col-md-6">
+                <label for="targetLangs" class="form-label">Target Languages (comma-separated)</label>
+                <input type="text" id="targetLangs" class="form-control" placeholder="hi,ar,es" value="hi,ar,es">
+            </div>
+        </div>
+
+        <button id="translateBtn" class="btn btn-primary w-100 mb-3">
+            Start Translation
+        </button>
+
+        <div id="progressContainer" class="d-none">
+            <div id="overallProgress" class="progress mt-3">
+                <div id="overallProgressBar" class="progress-bar" role="progressbar" style="width: 0%">
+                    0%
+                </div>
+            </div>
+            <p id="overallProgressText" class="text-center mt-2">Translating...</p>
+        </div>
+
+        <div id="translationResults" class="mt-3">
+            <!-- Translations will be dynamically added here -->
+        </div>
+
+        <div class="mt-3">
+            <button id="downloadAllBtn" class="btn btn-success w-100 d-none">
+                Download All Translations
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Translation Service
+        const TranslationService = {
+            async translateText(query, sourceLang, targetLang) {
+                try {
+                    const encodedQuery = encodeURIComponent(query);
+                    const response = await axios.get(
+                        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodedQuery}`
+                    );
+
+                    if (response.status === 200) {
+                        return response.data[0][0][0];
+                    }
+                    return null;
+                } catch (error) {
+                    console.error('Translation error:', error);
+                    return null;
+                }
+            }
+        };
+
+        // Multi-Language JSON Translator
+        class MultiLanguageTranslator {
+            constructor() {
+                this.sourceJson = null;
+                this.translatedJsons = {};
+                this.totalWords = 0;
+                this.translatedWords = 0;
+
+                this.initEventListeners();
+            }
+
+            initEventListeners() {
+                document.getElementById('jsonFileInput').addEventListener('change', this.handleFileUpload.bind(this));
+                document.getElementById('translateBtn').addEventListener('click', this.startTranslation.bind(this));
+                document.getElementById('downloadAllBtn').addEventListener('click', this.downloadAllTranslations.bind(this));
+            }
+
+            handleFileUpload(event) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    try {
+                        this.sourceJson = JSON.parse(e.target.result);
+                        this.calculateTotalWords();
+                        document.getElementById('translateBtn').disabled = false;
+                    } catch (error) {
+                        alert('Invalid JSON file!');
+                    }
+                };
+
+                reader.readAsText(file);
+            }
+
+            calculateTotalWords() {
+                this.totalWords = Object.values(this.sourceJson)
+                    .map(value => value.toString().split(' ').length)
+                    .reduce((a, b) => a + b, 0);
+            }
+
+            async startTranslation() {
+                const sourceLang = document.getElementById('sourceLang').value || 'en';
+                const targetLangs = document.getElementById('targetLangs').value.split(',').map(lang => lang.trim());
+
+                if (!this.sourceJson || !sourceLang || targetLangs.length === 0) {
+                    alert('Please complete all fields!');
+                    return;
+                }
+
+                this.resetTranslation();
+                document.getElementById('progressContainer').classList.remove('d-none');
+                document.getElementById('translateBtn').disabled = true;
+                document.getElementById('downloadAllBtn').classList.add('d-none');
+
+                // Clear previous results
+                document.getElementById('translationResults').innerHTML = '';
+
+                // Parallel translation for each target language
+                const translationPromises = targetLangs.map(async (targetLang) => {
+                    const translatedJson = {};
+                    const languageTranslationPromises = Object.entries(this.sourceJson).map(async ([key, value]) => {
+                        const translatedText = await TranslationService.translateText(value, sourceLang, targetLang);
+
+                        if (translatedText) {
+                            translatedJson[key] = translatedText;
+                            this.translatedWords++;
+                            this.updateOverallProgress();
+                        }
+                    });
+
+                    await Promise.all(languageTranslationPromises);
+
+                    // Create translation result card
+                    this.createTranslationResultCard(targetLang, translatedJson);
+
+                    return { lang: targetLang, json: translatedJson };
+                });
+
+                // Wait for all translations to complete
+                this.translatedJsons = await Promise.all(translationPromises);
+
+                this.finalizeTranslation();
+            }
+
+            createTranslationResultCard(lang, translatedJson) {
+                const resultsContainer = document.getElementById('translationResults');
+                const card = document.createElement('div');
+                card.classList.add('card', 'translation-card');
+
+                card.innerHTML = `
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>Translation: ${lang.toUpperCase()}</strong>
+                        <button class="btn btn-sm btn-primary download-lang-btn" data-lang="${lang}">
+                            Download
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <pre>${JSON.stringify(translatedJson, null, 2)}</pre>
+                    </div>
+                `;
+
+                // Add download event listener
+                card.querySelector('.download-lang-btn').addEventListener('click', () => {
+                    this.downloadLanguageTranslation(lang, translatedJson);
+                });
+
+                resultsContainer.appendChild(card);
+            }
+
+            updateOverallProgress() {
+                const progressBar = document.getElementById('overallProgressBar');
+                const progressText = document.getElementById('overallProgressText');
+                const percentage = Math.round((this.translatedWords / (this.totalWords * this.translatedJsons.length)) * 100);
+
+                progressBar.style.width = `${percentage}%`;
+                progressBar.textContent = `${percentage}%`;
+                progressText.textContent = `Translating... ${this.translatedWords} words completed`;
+            }
+
+            finalizeTranslation() {
+                document.getElementById('translateBtn').disabled = false;
+                document.getElementById('downloadAllBtn').classList.remove('d-none');
+            }
+
+            downloadLanguageTranslation(lang, translatedJson) {
+                const blob = new Blob([JSON.stringify(translatedJson, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `translated_${lang}.json`;
+                a.click();
+
+                URL.revokeObjectURL(url);
+            }
+
+            downloadAllTranslations() {
+                this.translatedJsons.forEach(({ lang, json }) => {
+                    this.downloadLanguageTranslation(lang, json);
+                });
+            }
+
+            resetTranslation() {
+                this.translatedJsons = {};
+                this.translatedWords = 0;
+                document.getElementById('translationResults').innerHTML = '';
+                document.getElementById('downloadAllBtn').classList.add('d-none');
+            }
+        }
+
+        // Initialize the app
+        new MultiLanguageTranslator();
+    </script>
+</body>
+
+</html>
